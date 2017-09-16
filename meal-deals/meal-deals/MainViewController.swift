@@ -24,6 +24,7 @@ class MainViewController: UIViewController {
 	private let geocoder = CLGeocoder()
 	var reference = Database.database().reference()
 	private let locationManager = CLLocationManager()
+	fileprivate var followUser = true
 
 	var restaurants: [Restaurant] = []
 	
@@ -53,6 +54,7 @@ class MainViewController: UIViewController {
 				)
 
 				self.restaurants.append(restaurant)
+				self.addAnnotationFor(restaurant: restaurant)
 			}
 		}
 		
@@ -84,6 +86,35 @@ class MainViewController: UIViewController {
 		let viewRegion = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
 		mapView.setRegion(viewRegion, animated: true)
 	}
+	
+	func displayLocationOf(restaurant: Restaurant) {
+		geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
+			guard let strongSelf = self else { return }
+			if let error = error {
+				print(error)
+			}
+			
+			if let coordinate = placemarks?.first?.location?.coordinate {
+				strongSelf.updateLocation(coordinate: coordinate)
+			}
+		})
+	}
+	
+	func addAnnotationFor(restaurant: Restaurant) {
+		geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
+			guard let strongSelf = self else { return }
+			if let error = error {
+				print(error)
+			}
+			
+			if let coordinate = placemarks?.first?.location?.coordinate {
+				let annotation = MKPointAnnotation()
+				annotation.coordinate = coordinate
+				annotation.title = restaurant.dealTitle
+				strongSelf.mapView.addAnnotation(annotation)
+			}
+		})
+	}
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("restaurants").queryLimited(toFirst: 10)
@@ -91,12 +122,26 @@ class MainViewController: UIViewController {
 }
 
 extension MainViewController: MKMapViewDelegate {
-	
+	func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+		var annotationView: MKAnnotationView
+		if let view = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: MKAnnotationView.self)) {
+			annotationView = view
+		} else {
+			annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: String(describing: MKAnnotationView.self))
+		}
+		
+		annotationView.canShowCallout = true
+		
+		return annotationView
+	}
 }
 
 extension MainViewController: CLLocationManagerDelegate {
 	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-		guard let coordinate = manager.location?.coordinate else { return }
-		updateLocation(coordinate: coordinate)
+		guard
+			followUser,
+			let coordinate = manager.location?.coordinate
+		else { return }
+		self.updateLocation(coordinate: coordinate)
 	}
 }

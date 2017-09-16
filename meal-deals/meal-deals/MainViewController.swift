@@ -11,14 +11,31 @@ import MapKit
 import Firebase
 import CoreLocation
 
+struct Restaurant {
+	let address: String
+	let name: String
+	let id: String
+	var dealTitle: String?
+	var dealDescription: String?
+}
+
 class MainViewController: UIViewController {
 	private let mapView = MKMapView()
 	private let geocoder = CLGeocoder()
 	var reference = Database.database().reference()
 	private let locationManager = CLLocationManager()
+
+	var restaurant: [Restaurant] = []
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
+
+		getQuery().observe(.value) { (dataSnapshot, string) in
+
+			for child in dataSnapshot.children {
+				print(child)
+			}
+		}
 		
 		// location services
 		self.locationManager.requestWhenInUseAuthorization()
@@ -50,7 +67,7 @@ class MainViewController: UIViewController {
 	}
 
 	func getQuery() -> DatabaseQuery {
-		return reference.child("deals").queryLimited(toFirst: 10)
+		return reference.child("restaurants").queryLimited(toFirst: 10)
 	}
 }
 

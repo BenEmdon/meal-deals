@@ -25,7 +25,7 @@ class MainViewController: UIViewController {
 	var reference = Database.database().reference()
 	private let locationManager = CLLocationManager()
 
-	var restaurant: [Restaurant] = []
+	var restaurants: [Restaurant] = []
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -33,7 +33,26 @@ class MainViewController: UIViewController {
 		getQuery().observe(.value) { (dataSnapshot, string) in
 
 			for child in dataSnapshot.children {
-				print(child)
+				guard
+					let snapshot = child as? DataSnapshot,
+					let restaurantDict = snapshot.value as? Dictionary<String, String>
+					else { continue }
+
+				guard
+					let address = restaurantDict["address"],
+					let name = restaurantDict["name"],
+					let id = restaurantDict["id"]
+					else { print("Malformed data 😢"); continue }
+
+				let restaurant = Restaurant(
+					address: address,
+					name: name,
+					id: id,
+					dealTitle: restaurantDict["deal_title"],
+					dealDescription: restaurantDict["deal_description"]
+				)
+
+				self.restaurants.append(restaurant)
 			}
 		}
 		

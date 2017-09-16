@@ -77,8 +77,8 @@ class MainViewController: UIViewController {
 
 				strongSelf.restaurants.append(restaurant)
 				strongSelf.addAnnotationFor(restaurant: restaurant)
-				strongSelf.collectionView.reloadData()
 			}
+			strongSelf.collectionView.reloadData()
 		}
 		
 		// location services

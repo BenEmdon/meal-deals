@@ -7,8 +7,11 @@
 //
 
 import UIKit
+import Firebase
 
 class ViewController: UIViewController {
+
+	var reference: DatabaseReference!
 
 	override func viewDidLoad() {
 		super.viewDidLoad()

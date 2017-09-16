@@ -7,5 +7,6 @@ target 'meal-deals' do
 
   # Pods for meal-deals
   pod 'Firebase/Core'
+	pod 'Firebase/Database'
 
 end

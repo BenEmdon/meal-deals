@@ -1,4 +1,4 @@
-# meal deal
+# meal deals
 ## MVP Requirements
 - map view where you can see current deals which are represented by a pin with a title of the deal
 - when you tap the pin you are presented with a horizontal paging list  ([CenteredCollectionView](github.com/BenEmdon/CenteredCollectionView)) containing more details about the deal (when, where, what).

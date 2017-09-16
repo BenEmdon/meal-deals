@@ -9,16 +9,25 @@
 import UIKit
 import MapKit
 import Firebase
+import CoreLocation
 
 class MainViewController: UIViewController {
 	private let mapView = MKMapView()
 	private let geocoder = CLGeocoder()
-
 	var reference = Database.database().reference()
-
+	private let locationManager = CLLocationManager()
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-
+		
+		self.locationManager.requestWhenInUseAuthorization()
+		
+		if CLLocationManager.locationServicesEnabled() {
+			locationManager.delegate = self
+			locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+			locationManager.startUpdatingLocation()
+		}
+		
 		// mapView setup
 		mapView.delegate = self
 		mapView.showsUserLocation = true
@@ -46,5 +55,9 @@ class MainViewController: UIViewController {
 }
 
 extension MainViewController: MKMapViewDelegate {
+	
+}
+
+extension MainViewController: CLLocationManagerDelegate {
 	
 }

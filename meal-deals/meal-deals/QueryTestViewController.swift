@@ -22,13 +22,12 @@ class QueryTestViewController: UIViewController {
 		getQuery().observe(.value) { (dataSnapshot, string) in
 			self.deals.append(dataSnapshot)
 			print(dataSnapshot.description)
-			print(string ?? "FUUUUUCK")
 		}
 
-		getQuery().observe(.childChanged, with: { [weak self] (snapshot: DataSnapshot) in
-			self?.deals.append(snapshot)
-			print(snapshot.description)
-		})
+		//getQuery().observe(.childChanged, with: { [weak self] (snapshot: DataSnapshot) in
+		//	self?.deals.append(snapshot)
+		//	print(snapshot.description)
+		//})
 	}
 
 	func getQuery() -> DatabaseQuery {

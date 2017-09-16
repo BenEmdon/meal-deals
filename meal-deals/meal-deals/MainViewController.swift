@@ -20,24 +20,19 @@ class MainViewController: UIViewController {
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		
+		// location services
 		self.locationManager.requestWhenInUseAuthorization()
-		
 		if CLLocationManager.locationServicesEnabled() {
 			locationManager.delegate = self
 			locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
 			locationManager.startUpdatingLocation()
 		}
 		
-		// mapView setup
+		// mapView
 		mapView.delegate = self
 		mapView.showsUserLocation = true
 
-		// mapView region
-		let noLocation = CLLocationCoordinate2D()
-		let viewRegion = MKCoordinateRegionMakeWithDistance(noLocation, 10, 10)
-		mapView.setRegion(viewRegion, animated: true)
-
-		// view setup
+		// view
 		view.addSubview(mapView)
 		mapView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -47,6 +42,11 @@ class MainViewController: UIViewController {
 			mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 			mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 			])
+	}
+	
+	func updateLocation(coordinate: CLLocationCoordinate2D) {
+		let viewRegion = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
+		mapView.setRegion(viewRegion, animated: true)
 	}
 
 	func getQuery() -> DatabaseQuery {
@@ -59,5 +59,8 @@ extension MainViewController: MKMapViewDelegate {
 }
 
 extension MainViewController: CLLocationManagerDelegate {
-	
+	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+		guard let coordinate = manager.location?.coordinate else { return }
+		updateLocation(coordinate: coordinate)
+	}
 }

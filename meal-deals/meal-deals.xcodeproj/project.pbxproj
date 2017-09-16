@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		14716EE11F6D826400941A7B /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14716EE01F6D826400941A7B /* MainViewController.swift */; };
 		1DC729EE1F6CE4600005F1A6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC729ED1F6CE4600005F1A6 /* AppDelegate.swift */; };
-		1DC729F01F6CE4600005F1A6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC729EF1F6CE4600005F1A6 /* ViewController.swift */; };
 		1DC729F51F6CE4600005F1A6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1DC729F41F6CE4600005F1A6 /* Assets.xcassets */; };
 		1DC729F81F6CE4600005F1A6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1DC729F61F6CE4600005F1A6 /* LaunchScreen.storyboard */; };
 		1DC72A001F6CE4D40005F1A6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1DC729FF1F6CE4D40005F1A6 /* GoogleService-Info.plist */; };
@@ -17,9 +17,9 @@
 
 /* Begin PBXFileReference section */
 		000D5DE972BEEFBEFBDA9959 /* Pods_meal_deals.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_meal_deals.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		14716EE01F6D826400941A7B /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		1DC729EA1F6CE4600005F1A6 /* meal-deals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "meal-deals.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DC729ED1F6CE4600005F1A6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		1DC729EF1F6CE4600005F1A6 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		1DC729F41F6CE4600005F1A6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1DC729F71F6CE4600005F1A6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1DC729F91F6CE4600005F1A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -62,11 +62,11 @@
 			isa = PBXGroup;
 			children = (
 				1DC729ED1F6CE4600005F1A6 /* AppDelegate.swift */,
-				1DC729EF1F6CE4600005F1A6 /* ViewController.swift */,
 				1DC729F41F6CE4600005F1A6 /* Assets.xcassets */,
 				1DC729F61F6CE4600005F1A6 /* LaunchScreen.storyboard */,
 				1DC729F91F6CE4600005F1A6 /* Info.plist */,
 				1DC729FF1F6CE4D40005F1A6 /* GoogleService-Info.plist */,
+				14716EE01F6D826400941A7B /* MainViewController.swift */,
 			);
 			path = "meal-deals";
 			sourceTree = "<group>";
@@ -211,7 +211,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1DC729F01F6CE4600005F1A6 /* ViewController.swift in Sources */,
+				14716EE11F6D826400941A7B /* MainViewController.swift in Sources */,
 				1DC729EE1F6CE4600005F1A6 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

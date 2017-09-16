@@ -1,9 +1,9 @@
 //
 //  ViewController.swift
-//  meal deals
+//  meal-deals
 //
 //  Created by Benjamin Emdon on 2017-09-16.
-//  Copyright © 2017 Benjamin Emdon. All rights reserved.
+//  Copyright © 2017 branch brunch. All rights reserved.
 //
 
 import UIKit

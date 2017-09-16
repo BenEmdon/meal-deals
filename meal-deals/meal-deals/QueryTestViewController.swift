@@ -12,11 +12,23 @@ import Firebase
 class QueryTestViewController: UIViewController {
 
 	var reference = Database.database().reference()
+	var deals = [DataSnapshot]()
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
 		// Do any additional setup after loading the view.
+
+		getQuery().observe(.value) { (dataSnapshot, string) in
+			self.deals.append(dataSnapshot)
+			print(dataSnapshot.description)
+			print(string ?? "FUUUUUCK")
+		}
+
+		getQuery().observe(.childChanged, with: { [weak self] (snapshot: DataSnapshot) in
+			self?.deals.append(snapshot)
+			print(snapshot.description)
+		})
 	}
 
 	func getQuery() -> DatabaseQuery {

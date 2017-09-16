@@ -9,26 +9,30 @@
 import UIKit
 import MapKit
 import Firebase
+import CoreLocation
 
 class MainViewController: UIViewController {
 	private let mapView = MKMapView()
 	private let geocoder = CLGeocoder()
-
 	var reference = Database.database().reference()
-
+	private let locationManager = CLLocationManager()
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
-
-		// mapView setup
+		
+		// location services
+		self.locationManager.requestWhenInUseAuthorization()
+		if CLLocationManager.locationServicesEnabled() {
+			locationManager.delegate = self
+			locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+			locationManager.startUpdatingLocation()
+		}
+		
+		// mapView
 		mapView.delegate = self
 		mapView.showsUserLocation = true
 
-		// mapView region
-		let noLocation = CLLocationCoordinate2D()
-		let viewRegion = MKCoordinateRegionMakeWithDistance(noLocation, 10, 10)
-		mapView.setRegion(viewRegion, animated: true)
-
-		// view setup
+		// view
 		view.addSubview(mapView)
 		mapView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -39,6 +43,11 @@ class MainViewController: UIViewController {
 			mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 			])
 	}
+	
+	func updateLocation(coordinate: CLLocationCoordinate2D) {
+		let viewRegion = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
+		mapView.setRegion(viewRegion, animated: true)
+	}
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("deals").queryLimited(toFirst: 10)
@@ -47,4 +56,11 @@ class MainViewController: UIViewController {
 
 extension MainViewController: MKMapViewDelegate {
 	
+}
+
+extension MainViewController: CLLocationManagerDelegate {
+	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+		guard let coordinate = manager.location?.coordinate else { return }
+		updateLocation(coordinate: coordinate)
+	}
 }

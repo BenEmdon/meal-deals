@@ -8,10 +8,13 @@
 
 import UIKit
 import MapKit
+import Firebase
 
 class MainViewController: UIViewController {
 	private let mapView = MKMapView()
 	private let geocoder = CLGeocoder()
+
+	var reference = Database.database().reference()
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -35,6 +38,10 @@ class MainViewController: UIViewController {
 			mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 			mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 		])
+	}
+
+	func getQuery() -> DatabaseQuery {
+		return reference.child("deals").queryLimited(toFirst: 10)
 	}
 }
 

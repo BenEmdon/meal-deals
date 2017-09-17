@@ -34,10 +34,9 @@ class MainViewController: UIViewController {
 	fileprivate let centeredCollectionViewFlowLayout = CenteredCollectionViewFlowLayout()
 
 	// shared mutable state ¯\_(ツ)_/¯
-	fileprivate var followUser = false
 	var restaurants: [Restaurant] = []
 	private var geocoderCounter = 1
-	private var isExpanded = false
+	fileprivate var isExpanded = false
 	private var collectionViewBottomConstraint: NSLayoutConstraint!
 
 	// button yo
@@ -178,26 +177,29 @@ class MainViewController: UIViewController {
 			animations: animations,
 			completion: { [weak self] _ in
 				self?.button.isEnabled = true
+				self?.updateRestaurantLocation()
 			}
 		)
 	}
 	
 	func updateLocation(coordinate: CLLocationCoordinate2D) {
-		let viewRegion = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
-		mapView.setRegion(viewRegion, animated: true)
+		var region = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
+		if isExpanded {
+			region.center.latitude -= region.span.latitudeDelta * 0.30
+		}
+		mapView.setRegion(region, animated: true)
 	}
 	
-	func displayLocationOf(restaurant: Restaurant) {
-		geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
+	func updateRestaurantLocation() {
+		guard let page = centeredCollectionViewFlowLayout.currentCenteredPage else { return }
+		geocoder.geocodeAddressString(restaurants[page].address, completionHandler: { [weak self] (placemarks, error) in
 			guard let strongSelf = self else { return }
 			if let error = error {
 				print(error)
 			}
 			
 			if let coordinate = placemarks?.first?.location?.coordinate {
-				var region = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
-				region.center.latitude -= region.span.latitudeDelta * 0.30
-				strongSelf.mapView.setRegion(region, animated: true)
+				strongSelf.updateLocation(coordinate: coordinate)
 			}
 		})
 	}
@@ -216,14 +218,13 @@ class MainViewController: UIViewController {
 					annotation.title = restaurant.dealTitle
 					strongSelf.mapView.addAnnotation(annotation)
 				} else {
-					print("Didn't find anything")
+					print("Didn't find anything for \(restaurant)")
 				}
 				strongSelf.geocoderCounter -= 1
 			})
 		}
 		geocoderCounter += 1
 	}
-
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("restaurants").queryLimited(toFirst: 10)
@@ -251,7 +252,7 @@ extension MainViewController: MKMapViewDelegate {
 extension MainViewController: CLLocationManagerDelegate {
 	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 		guard
-			followUser,
+			!isExpanded,
 			let coordinate = manager.location?.coordinate
 		else { return }
 		self.updateLocation(coordinate: coordinate)
@@ -277,5 +278,13 @@ extension MainViewController: UICollectionViewDelegate {
 			currentCenteredPage != indexPath.row {
 			centeredCollectionViewFlowLayout.scrollToPage(index: indexPath.row, animated: true)
 		}
+	}
+	
+	func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+		updateRestaurantLocation()
+	}
+	
+	func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+		updateRestaurantLocation()
 	}
 }

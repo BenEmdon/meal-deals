@@ -62,22 +62,50 @@ class MainViewController: UIViewController {
 
 		// Firebase
 
-		let onDataBaseAdd: (DataSnapshot, DataEventType) -> () = { [weak self] (dataSnapshot, event) in
+		getQuery().observe(.childChanged, with: { [weak self] dataSnapshot in
 			guard let strongSelf = self else { return }
 
-			var newRestaurants: [Restaurant] = []
+			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A FUCKING DICT") }
 
-			for child in dataSnapshot.children {
-				guard
-					let snapshot = child as? DataSnapshot,
-					let restaurantDict = snapshot.value as? Dictionary<String, String>
-					else { continue }
+			guard
+				let address = restaurantDict["address"],
+				let name = restaurantDict["name"],
+				let id = restaurantDict["id"]
+				else { return print("Malformed data 😢") }
+
+			let restaurant = Restaurant(
+				address: address,
+				name: name,
+				id: id,
+				dealTitle: restaurantDict["deal_title"],
+				dealDescription: restaurantDict["deal_description"]
+			)
+
+			// remove
+			if let annotation = strongSelf.annotations[restaurant.id] {
+				strongSelf.mapView.removeAnnotation(annotation)
+			}
+			strongSelf.annotations.removeValue(forKey: restaurant.id)
+			strongSelf.restaurants = strongSelf.restaurants.filter { $0.id != restaurant.id }
+
+			// add again
+			strongSelf.restaurants.append(restaurant)
+			strongSelf.addAnnotationFor(restaurant: restaurant)
+			strongSelf.notifyFor(restaurant: restaurant)
+			strongSelf.collectionView.reloadData()
+		})
+
+
+		getQuery().observe(.childAdded, with: { [weak self] dataSnapshot in
+			guard let strongSelf = self else { return }
+
+			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A FUCKING DICT") }
 
 				guard
 					let address = restaurantDict["address"],
 					let name = restaurantDict["name"],
 					let id = restaurantDict["id"]
-					else { print("Malformed data 😢"); continue }
+					else { return print("Malformed data 😢") }
 
 				let restaurant = Restaurant(
 					address: address,
@@ -87,30 +115,17 @@ class MainViewController: UIViewController {
 					dealDescription: restaurantDict["deal_description"]
 				)
 
-				newRestaurants.append(restaurant)
-			}
-			strongSelf.restaurants.append(contentsOf: newRestaurants)
-			for restaurant in newRestaurants {
-				strongSelf.addAnnotationFor(restaurant: restaurant)
-				if event == .childAdded {
-					strongSelf.notifyFor(restaurant: restaurant)
-				}
-			}
+			strongSelf.restaurants.append(restaurant)
+			strongSelf.addAnnotationFor(restaurant: restaurant)
 			strongSelf.collectionView.reloadData()
 			if !strongSelf.restaurants.isEmpty {
 				UIView.animate(withDuration: 0.5, animations: { [weak self] in
 					self?.button.isHidden = false
 				})
 			}
-		}
+			}
+		)
 
-		getQuery().observeSingleEvent(of: .value) { dataSnapshot in
-			onDataBaseAdd(dataSnapshot, .value)
-		}
-
-		getQuery().observe(.childAdded) { dataSnapshot in
-			onDataBaseAdd(dataSnapshot, .childAdded)
-		}
 
 		getQuery().observe(.childRemoved) { [weak self] (dataSnapshot, string) in
 			guard let strongSelf = self else { return }

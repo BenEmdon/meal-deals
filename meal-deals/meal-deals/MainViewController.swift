@@ -35,6 +35,7 @@ class MainViewController: UIViewController {
 
 	// shared mutable state ¯\_(ツ)_/¯
 	var restaurants: [Restaurant] = []
+	var annotations: [String: MKAnnotation] = [:]
 	private var geocoderCounter = 1
 	fileprivate var isExpanded = false
 	private var collectionViewBottomConstraint: NSLayoutConstraint!
@@ -57,8 +58,11 @@ class MainViewController: UIViewController {
 		super.viewDidLoad()
 
 		// Firebase
-		getQuery().observe(.value) { [weak self] (dataSnapshot, string) in
+
+		let onDataBaseAdd: (DataSnapshot) -> () = { [weak self] dataSnapshot in
 			guard let strongSelf = self else { return }
+
+			var newRestaurants: [Restaurant] = []
 
 			for child in dataSnapshot.children {
 				guard
@@ -80,15 +84,54 @@ class MainViewController: UIViewController {
 					dealDescription: restaurantDict["deal_description"]
 				)
 
-				strongSelf.restaurants.append(restaurant)
+				newRestaurants.append(restaurant)
 			}
-			for restaurant in strongSelf.restaurants {
+			strongSelf.restaurants.append(contentsOf: newRestaurants)
+			for restaurant in newRestaurants {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
 			}
 			strongSelf.collectionView.reloadData()
 			if !strongSelf.restaurants.isEmpty {
 				UIView.animate(withDuration: 0.5, animations: { [weak self] in
 					self?.button.isHidden = false
+				})
+			}
+		}
+
+		getQuery().observeSingleEvent(of: .value, with: onDataBaseAdd)
+
+		getQuery().observe(.childAdded, with: onDataBaseAdd)
+
+		getQuery().observe(.childRemoved) { [weak self] (dataSnapshot, string) in
+			guard let strongSelf = self else { return }
+
+			var restaurantsToRemove: [Restaurant] = []
+
+			for child in dataSnapshot.children {
+				guard
+					let snapshot = child as? DataSnapshot,
+					snapshot.key == "id"
+					else { print("not an 'id' field ¯\\_(ツ)_/¯"); continue }
+
+				guard
+					let id = snapshot.value as? String,
+					let resteraunt = strongSelf.restaurants.first(where: { $0.id == id })
+					else { print("Malformed data 😢 or no matching restaurant"); continue }
+
+					restaurantsToRemove.append(resteraunt)
+			}
+			for restaurant in restaurantsToRemove {
+				if let annotation = strongSelf.annotations[restaurant.id] {
+					strongSelf.mapView.removeAnnotation(annotation)
+				}
+				strongSelf.annotations.removeValue(forKey: restaurant.id)
+				strongSelf.restaurants = strongSelf.restaurants.filter { $0.id == restaurant.id }
+			}
+
+			strongSelf.collectionView.reloadData()
+			if strongSelf.restaurants.isEmpty {
+				UIView.animate(withDuration: 0.5, animations: { [weak self] in
+					self?.button.isHidden = true
 				})
 			}
 		}
@@ -217,6 +260,7 @@ class MainViewController: UIViewController {
 					annotation.coordinate = coordinate
 					annotation.title = restaurant.dealTitle
 					strongSelf.mapView.addAnnotation(annotation)
+					strongSelf.annotations[restaurant.id] = annotation
 				} else {
 					print("Didn't find anything for \(restaurant)")
 				}

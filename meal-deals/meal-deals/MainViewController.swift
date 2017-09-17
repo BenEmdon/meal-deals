@@ -87,6 +87,11 @@ class MainViewController: UIViewController {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
 			}
 			strongSelf.collectionView.reloadData()
+			if !strongSelf.restaurants.isEmpty {
+				UIView.animate(withDuration: 0.5, animations: { [weak self] in
+					self?.button.isHidden = false
+				})
+			}
 		}
 		
 		// location services
@@ -105,6 +110,7 @@ class MainViewController: UIViewController {
 		button.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
 		button.backgroundColor = UIColor.white.withAlphaComponent(0.9)
 		button.layer.cornerRadius = 44/2
+		button.isHidden = false
 
 
 		// view
@@ -160,7 +166,7 @@ class MainViewController: UIViewController {
 			isExpanded = false
 		} else {
 			animations = { [weak self] in
-				self?.button.transform = CGAffineTransform(rotationAngle: (CGFloat(Double.pi)))
+				self?.button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi))
 				self?.collectionViewBottomConstraint.constant = -10
 				self?.view.layoutIfNeeded()
 			}

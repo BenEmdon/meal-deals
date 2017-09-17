@@ -11,6 +11,7 @@ import MapKit
 import Firebase
 import CoreLocation
 import CenteredCollectionView
+import UserNotifications
 
 struct Restaurant {
 	let address: String
@@ -39,13 +40,15 @@ class MainViewController: UIViewController {
 	private var geocoderCounter = 1
 	fileprivate var isExpanded = false
 	private var collectionViewBottomConstraint: NSLayoutConstraint!
-
+	
+	// Notification
+	let center = UNUserNotificationCenter.current()
+	
 	// button yo
 	let button = UIButton()
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
-
 		// fuck storyboards
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -59,7 +62,7 @@ class MainViewController: UIViewController {
 
 		// Firebase
 
-		let onDataBaseAdd: (DataSnapshot) -> () = { [weak self] dataSnapshot in
+		let onDataBaseAdd: (DataSnapshot, DataEventType) -> () = { [weak self] (dataSnapshot, event) in
 			guard let strongSelf = self else { return }
 
 			var newRestaurants: [Restaurant] = []
@@ -89,6 +92,9 @@ class MainViewController: UIViewController {
 			strongSelf.restaurants.append(contentsOf: newRestaurants)
 			for restaurant in newRestaurants {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
+				if event == .childAdded {
+					strongSelf.notifyFor(restaurant: restaurant)
+				}
 			}
 			strongSelf.collectionView.reloadData()
 			if !strongSelf.restaurants.isEmpty {
@@ -98,9 +104,13 @@ class MainViewController: UIViewController {
 			}
 		}
 
-		getQuery().observeSingleEvent(of: .value, with: onDataBaseAdd)
+		getQuery().observeSingleEvent(of: .value) { dataSnapshot in
+			onDataBaseAdd(dataSnapshot, .value)
+		}
 
-		getQuery().observe(.childAdded, with: onDataBaseAdd)
+		getQuery().observe(.childAdded) { dataSnapshot in
+			onDataBaseAdd(dataSnapshot, .childAdded)
+		}
 
 		getQuery().observe(.childRemoved) { [weak self] (dataSnapshot, string) in
 			guard let strongSelf = self else { return }
@@ -135,6 +145,8 @@ class MainViewController: UIViewController {
 				})
 			}
 		}
+		
+		center.delegate = self
 		
 		// location services
 		self.locationManager.requestWhenInUseAuthorization()
@@ -269,6 +281,21 @@ class MainViewController: UIViewController {
 		}
 		geocoderCounter += 1
 	}
+	
+	func notifyFor(restaurant: Restaurant) {
+		let content = UNMutableNotificationContent()
+		content.title = restaurant.name
+		content.body = restaurant.dealTitle ?? "Deal coming soon!"
+		content.sound = UNNotificationSound.default()
+		
+		let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+		let request = UNNotificationRequest(identifier: restaurant.id, content: content, trigger: trigger)
+		center.add(request) { (error) in
+			if let error = error {
+				print("Notify error for \(restaurant): \(error)")
+			}
+		}
+	}
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("restaurants").queryLimited(toFirst: 10)
@@ -330,5 +357,11 @@ extension MainViewController: UICollectionViewDelegate {
 	
 	func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
 		updateRestaurantLocation()
+	}
+}
+
+extension MainViewController: UNUserNotificationCenterDelegate {
+	func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+		completionHandler(.alert)
 	}
 }

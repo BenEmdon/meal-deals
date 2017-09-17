@@ -17,7 +17,7 @@ class DealAnnotationView: MKAnnotationView {
 		super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
 		label.textColor = UIColor.black
 		label.textAlignment = .center
-		label.numberOfLines = 0
+		label.numberOfLines = 3
 		
 		addSubview(label)
 	}
@@ -33,8 +33,8 @@ class DealAnnotationView: MKAnnotationView {
 	func render() {
 		if let title = dealTitle {
 			label.text = "\(title)\n📍"
+			label.sizeToFit()
 		}
-		label.sizeToFit()
 	}
 	
 	override func prepareForReuse() {

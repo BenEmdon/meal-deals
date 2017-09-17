@@ -40,12 +40,14 @@ class MainViewController: UIViewController {
 	private var geocoderCounter = 1
 	fileprivate var isExpanded = false
 	private var collectionViewBottomConstraint: NSLayoutConstraint!
+	fileprivate var followLocation = true
 	
 	// Notification
 	let center = UNUserNotificationCenter.current()
 	
 	// button yo
-	let button = UIButton()
+	let chevronButton = UIButton()
+	let locationButton = UIButton()
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
@@ -65,7 +67,7 @@ class MainViewController: UIViewController {
 		getQuery().observe(.childChanged, with: { [weak self] dataSnapshot in
 			guard let strongSelf = self else { return }
 
-			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A FUCKING DICT") }
+			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A DICT") }
 
 			guard
 				let address = restaurantDict["address"],
@@ -99,7 +101,7 @@ class MainViewController: UIViewController {
 		getQuery().observe(.childAdded, with: { [weak self] dataSnapshot in
 			guard let strongSelf = self else { return }
 
-			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A FUCKING DICT") }
+			guard let restaurantDict = dataSnapshot.value as? Dictionary<String, String> else { return print("CANT BE A DICT") }
 
 				guard
 					let address = restaurantDict["address"],
@@ -120,7 +122,7 @@ class MainViewController: UIViewController {
 			strongSelf.collectionView.reloadData()
 			if !strongSelf.restaurants.isEmpty {
 				UIView.animate(withDuration: 0.5, animations: { [weak self] in
-					self?.button.isHidden = false
+					self?.chevronButton.isHidden = false
 				})
 			}
 			}
@@ -156,7 +158,7 @@ class MainViewController: UIViewController {
 			strongSelf.collectionView.reloadData()
 			if strongSelf.restaurants.isEmpty {
 				UIView.animate(withDuration: 0.5, animations: { [weak self] in
-					self?.button.isHidden = true
+					self?.chevronButton.isHidden = true
 				})
 			}
 		}
@@ -175,11 +177,16 @@ class MainViewController: UIViewController {
 		mapView.delegate = self
 		mapView.showsUserLocation = true
 
-		button.setImage(#imageLiteral(resourceName: "ChevronUp"), for: .normal)
-		button.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
-		button.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-		button.layer.cornerRadius = 10
-		button.isHidden = false
+		chevronButton.setImage(#imageLiteral(resourceName: "ChevronUp"), for: .normal)
+		chevronButton.addTarget(self, action: #selector(chevronButtonPressed), for: .touchUpInside)
+		chevronButton.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+		chevronButton.layer.cornerRadius = 10
+		chevronButton.isHidden = false
+
+		locationButton.setImage(#imageLiteral(resourceName: "location"), for: .normal)
+		locationButton.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+		locationButton.layer.cornerRadius = 10
+		locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
 
 
 		// view
@@ -187,8 +194,10 @@ class MainViewController: UIViewController {
 		mapView.translatesAutoresizingMaskIntoConstraints = false
 		view.addSubview(collectionView)
 		collectionView.translatesAutoresizingMaskIntoConstraints = false
-		view.addSubview(button)
-		button.translatesAutoresizingMaskIntoConstraints = false
+		view.addSubview(chevronButton)
+		chevronButton.translatesAutoresizingMaskIntoConstraints = false
+		view.addSubview(locationButton)
+		locationButton.translatesAutoresizingMaskIntoConstraints = false
 		collectionViewBottomConstraint = collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 265)
 
 		NSLayoutConstraint.activate([
@@ -202,10 +211,15 @@ class MainViewController: UIViewController {
 			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 			collectionView.heightAnchor.constraint(equalToConstant: 310),
 
-			button.heightAnchor.constraint(equalToConstant: 44),
-			button.widthAnchor.constraint(equalTo: button.heightAnchor),
-			button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
-			button.bottomAnchor.constraint(equalTo: collectionView.topAnchor, constant: -5)
+			chevronButton.heightAnchor.constraint(equalToConstant: 44),
+			chevronButton.widthAnchor.constraint(equalTo: chevronButton.heightAnchor),
+			chevronButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+			chevronButton.bottomAnchor.constraint(equalTo: collectionView.topAnchor, constant: -5),
+
+			locationButton.heightAnchor.constraint(equalToConstant: 44),
+			locationButton.widthAnchor.constraint(equalTo: locationButton.heightAnchor),
+			locationButton.bottomAnchor.constraint(equalTo: chevronButton.bottomAnchor),
+			locationButton.trailingAnchor.constraint(equalTo: chevronButton.leadingAnchor, constant: -15)
 			])
 
 		// setup CenteredCollectionView
@@ -223,19 +237,32 @@ class MainViewController: UIViewController {
 		collectionView.showsHorizontalScrollIndicator = false
 	}
 
-	func buttonPressed() {
-		button.isEnabled = false
+	func locationButtonPressed() {
+		if followLocation {
+			locationButton.setImage(#imageLiteral(resourceName: "locationOff"), for: .normal)
+			mapView.userTrackingMode = .none
+			followLocation = false
+		} else {
+			locationButton.setImage(#imageLiteral(resourceName: "location"), for: .normal)
+			mapView.userTrackingMode = .follow
+			followLocation = true
+		}
+
+	}
+
+	func chevronButtonPressed() {
+		chevronButton.isEnabled = false
 		let animations: () -> ()
 		if isExpanded {
 			animations = { [weak self] in
-				self?.button.transform = CGAffineTransform(rotationAngle: 0)
+				self?.chevronButton.transform = CGAffineTransform(rotationAngle: 0)
 				self?.collectionViewBottomConstraint.constant = 265
 				self?.view.layoutIfNeeded()
 			}
 			isExpanded = false
 		} else {
 			animations = { [weak self] in
-				self?.button.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi))
+				self?.chevronButton.transform = CGAffineTransform(rotationAngle: CGFloat(Double.pi))
 				self?.collectionViewBottomConstraint.constant = -10
 				self?.view.layoutIfNeeded()
 			}
@@ -246,14 +273,14 @@ class MainViewController: UIViewController {
 			withDuration: 0.5,
 			animations: animations,
 			completion: { [weak self] _ in
-				self?.button.isEnabled = true
+				self?.chevronButton.isEnabled = true
 				self?.updateRestaurantLocation()
 			}
 		)
 	}
 	
 	func updateLocation(coordinate: CLLocationCoordinate2D) {
-		var region = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
+		var region = MKCoordinateRegionMakeWithDistance(coordinate, 400, 400)
 		if isExpanded {
 			region.center.latitude -= region.span.latitudeDelta * 0.30
 		}
@@ -339,6 +366,7 @@ extension MainViewController: CLLocationManagerDelegate {
 	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 		guard
 			!isExpanded,
+			followLocation,
 			let coordinate = manager.location?.coordinate
 		else { return }
 		self.updateLocation(coordinate: coordinate)

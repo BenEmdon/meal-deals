@@ -142,7 +142,9 @@ class MainViewController: UIViewController {
 			}
 			
 			if let coordinate = placemarks?.first?.location?.coordinate {
-				strongSelf.updateLocation(coordinate: coordinate)
+				var region = MKCoordinateRegionMakeWithDistance(coordinate, 200, 200)
+				region.center.latitude -= region.span.latitudeDelta * 0.30
+				strongSelf.mapView.setRegion(region, animated: true)
 			}
 		})
 	}

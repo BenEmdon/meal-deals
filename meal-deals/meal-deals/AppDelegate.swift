@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -22,6 +23,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		window = UIWindow(frame: UIScreen.main.bounds)
 		window?.rootViewController = MainViewController()
 		window?.makeKeyAndVisible()
+		
+		let center = UNUserNotificationCenter.current()
+		center.requestAuthorization(options: [.alert, .sound]) { (granted, error) in
+			if !granted {
+				print("Something went wrong")
+			}
+		}
 
 		return true
 	}
@@ -47,7 +55,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	func applicationWillTerminate(_ application: UIApplication) {
 		// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 	}
-	
 	
 }
 

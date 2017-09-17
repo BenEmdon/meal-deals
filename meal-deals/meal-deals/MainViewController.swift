@@ -167,11 +167,11 @@ class MainViewController: UIViewController {
 
 extension MainViewController: MKMapViewDelegate {
 	func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-		var annotationView: MKAnnotationView
-		if let view = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: MKAnnotationView.self)) {
-			annotationView = view
+		var annotationView: MKPinAnnotationView
+		if let dequeue = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: MKPinAnnotationView.self)) as? MKPinAnnotationView {
+			annotationView = dequeue
 		} else {
-			annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: String(describing: MKAnnotationView.self))
+			annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: String(describing: MKPinAnnotationView.self))
 		}
 		
 		annotationView.canShowCallout = true

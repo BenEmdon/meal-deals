@@ -15,20 +15,16 @@ class DealAnnotationView: MKAnnotationView {
 	
 	override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
 		super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
-		backgroundColor = UIColor.white
 		label.textColor = UIColor.black
+//		label.backgroundColor = .white
 		label.textAlignment = .center
 		label.numberOfLines = 0
 		
 		addSubview(label)
-		label.translatesAutoresizingMaskIntoConstraints = false
-		
-		NSLayoutConstraint.activate([
-			label.leadingAnchor.constraint(equalTo: leadingAnchor),
-			label.trailingAnchor.constraint(equalTo: trailingAnchor),
-			label.topAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-		])
+	}
 
+	override func sizeThatFits(_ size: CGSize) -> CGSize {
+		return label.sizeThatFits(size)
 	}
 	
 	required init?(coder aDecoder: NSCoder) {

@@ -36,6 +36,7 @@ class MainViewController: UIViewController {
 	// shared mutable state ¯\_(ツ)_/¯
 	fileprivate var followUser = false
 	var restaurants: [Restaurant] = []
+	private var geocoderCounter = 1
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
@@ -76,6 +77,8 @@ class MainViewController: UIViewController {
 				)
 
 				strongSelf.restaurants.append(restaurant)
+			}
+			for restaurant in strongSelf.restaurants {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
 			}
 			strongSelf.collectionView.reloadData()
@@ -145,20 +148,27 @@ class MainViewController: UIViewController {
 	}
 	
 	func addAnnotationFor(restaurant: Restaurant) {
-		geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
-			guard let strongSelf = self else { return }
-			if let error = error {
-				print(error)
-			}
-			
-			if let coordinate = placemarks?.first?.location?.coordinate {
-				let annotation = MKPointAnnotation()
-				annotation.coordinate = coordinate
-				annotation.title = restaurant.dealTitle
-				strongSelf.mapView.addAnnotation(annotation)
-			}
-		})
+		DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500 * geocoderCounter)) { [weak self] in
+			self?.geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
+				guard let strongSelf = self else { return }
+				if let error = error {
+					print(error)
+				}
+
+				if let coordinate = placemarks?.first?.location?.coordinate {
+					let annotation = MKPointAnnotation()
+					annotation.coordinate = coordinate
+					annotation.title = restaurant.dealTitle
+					strongSelf.mapView.addAnnotation(annotation)
+				} else {
+					print("Didn't find anything")
+				}
+				strongSelf.geocoderCounter -= 1
+			})
+		}
+		geocoderCounter += 1
 	}
+
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("restaurants").queryLimited(toFirst: 10)
@@ -177,6 +187,7 @@ extension MainViewController: MKMapViewDelegate {
 		
 		annotationView.dealTitle = annotation.title!
 		annotationView.render()
+		annotationView.centerOffset = CGPoint(x: -annotationView.label.bounds.width/2, y: -annotationView.label.bounds.height)
 		
 		return annotationView
 	}

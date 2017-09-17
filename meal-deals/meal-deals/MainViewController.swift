@@ -162,7 +162,7 @@ class MainViewController: UIViewController {
 		collectionView.translatesAutoresizingMaskIntoConstraints = false
 		view.addSubview(button)
 		button.translatesAutoresizingMaskIntoConstraints = false
-		collectionViewBottomConstraint = collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 280)
+		collectionViewBottomConstraint = collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 265)
 
 		NSLayoutConstraint.activate([
 			mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -202,7 +202,7 @@ class MainViewController: UIViewController {
 		if isExpanded {
 			animations = { [weak self] in
 				self?.button.transform = CGAffineTransform(rotationAngle: 0)
-				self?.collectionViewBottomConstraint.constant = 280
+				self?.collectionViewBottomConstraint.constant = 265
 				self?.view.layoutIfNeeded()
 			}
 			isExpanded = false

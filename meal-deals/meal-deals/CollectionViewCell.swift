@@ -20,20 +20,25 @@ class CollectionViewCell: UICollectionViewCell {
 		super.init(frame: frame)
 		backgroundColor = UIColor.white.withAlphaComponent(0.9)
 		layer.cornerRadius = 10
+
+		title.font = UIFont.systemFont(ofSize: 20, weight: UIFontWeightHeavy)
 		
 		let mainView = UIView()
 		let stackView = UIStackView()
+		let separator = UIView()
+		separator.backgroundColor = .black
 		
 		stackView.axis = .vertical
-		stackView.spacing = CGFloat(5)
+		stackView.spacing = 5
 		stackView.addArrangedSubview(title)
+		stackView.addArrangedSubview(separator)
 		stackView.addArrangedSubview(details)
 		stackView.addArrangedSubview(name)
 		stackView.addArrangedSubview(address)
 		stackView.translatesAutoresizingMaskIntoConstraints = false
 
 		
-		mainView.layoutMargins = UIEdgeInsets(top: CGFloat(30), left: CGFloat(30), bottom: CGFloat(30), right: CGFloat(30))
+		mainView.layoutMargins = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
 		mainView.translatesAutoresizingMaskIntoConstraints = false
 		
 		addSubview(mainView)
@@ -49,6 +54,8 @@ class CollectionViewCell: UICollectionViewCell {
 			stackView.topAnchor.constraint(equalTo: mainView.layoutMarginsGuide.topAnchor),
 			stackView.trailingAnchor.constraint(equalTo: mainView.layoutMarginsGuide.trailingAnchor),
 			stackView.bottomAnchor.constraint(lessThanOrEqualTo: mainView.layoutMarginsGuide.bottomAnchor),
+
+			separator.heightAnchor.constraint(equalToConstant: 2)
 			])
 
 	}

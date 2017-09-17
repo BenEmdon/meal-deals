@@ -298,7 +298,7 @@ class MainViewController: UIViewController {
 	}
 
 	func getQuery() -> DatabaseQuery {
-		return reference.child("restaurants").queryLimited(toFirst: 10)
+		return reference.child("restaurants").queryLimited(toFirst: 250)
 	}
 }
 

@@ -10,6 +10,7 @@ import UIKit
 import MapKit
 import Firebase
 import CoreLocation
+import CenteredCollectionView
 
 struct Restaurant {
 	let address: String
@@ -20,18 +21,39 @@ struct Restaurant {
 }
 
 class MainViewController: UIViewController {
+	// Firebase
+	private let reference = Database.database().reference()
+
+	// MapKit
 	private let mapView = MKMapView()
 	private let geocoder = CLGeocoder()
-	var reference = Database.database().reference()
 	private let locationManager = CLLocationManager()
-	fileprivate var followUser = true
 
+	// CenteredCollectionView
+	private let collectionView: UICollectionView
+	fileprivate let centeredCollectionViewFlowLayout = CenteredCollectionViewFlowLayout()
+
+	// shared mutable state ¯\_(ツ)_/¯
+	fileprivate var followUser = true
 	var restaurants: [Restaurant] = []
+
+	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
+
+		// fuck storyboards
+		super.init(nibName: nil, bundle: nil)
+	}
+	
+	required init?(coder aDecoder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		getQuery().observe(.value) { (dataSnapshot, string) in
+		// Firebase
+		getQuery().observe(.value) { [weak self] (dataSnapshot, string) in
+			guard let strongSelf = self else { return }
 
 			for child in dataSnapshot.children {
 				guard
@@ -53,9 +75,10 @@ class MainViewController: UIViewController {
 					dealDescription: restaurantDict["deal_description"]
 				)
 
-				self.restaurants.append(restaurant)
-				self.addAnnotationFor(restaurant: restaurant)
+				strongSelf.restaurants.append(restaurant)
+				strongSelf.addAnnotationFor(restaurant: restaurant)
 			}
+			strongSelf.collectionView.reloadData()
 		}
 		
 		// location services
@@ -66,20 +89,41 @@ class MainViewController: UIViewController {
 			locationManager.startUpdatingLocation()
 		}
 		
-		// mapView
+		// MapView
 		mapView.delegate = self
 		mapView.showsUserLocation = true
 
 		// view
 		view.addSubview(mapView)
 		mapView.translatesAutoresizingMaskIntoConstraints = false
+		view.addSubview(collectionView)
+		collectionView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
 			mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			mapView.topAnchor.constraint(equalTo: view.topAnchor),
 			mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 			mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+			collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+			collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+			collectionView.topAnchor.constraint(equalTo: view.bottomAnchor, constant: -160)
 			])
+
+		// setup CenteredCollectionView
+		// implement the delegate and dataSource
+		collectionView.delegate = self
+		collectionView.dataSource = self
+		collectionView.backgroundColor = .clear
+		// register collection cells
+		collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: String(describing: UICollectionViewCell.self))
+		// configure CenteredCollectionViewFlowLayout properties
+		centeredCollectionViewFlowLayout.itemSize = CGSize(width: view.bounds.width * 0.7, height: 150)
+		centeredCollectionViewFlowLayout.minimumLineSpacing = 20
+		// get rid of scrolling indicators
+		collectionView.showsVerticalScrollIndicator = false
+		collectionView.showsHorizontalScrollIndicator = false
 	}
 	
 	func updateLocation(coordinate: CLLocationCoordinate2D) {
@@ -143,5 +187,27 @@ extension MainViewController: CLLocationManagerDelegate {
 			let coordinate = manager.location?.coordinate
 		else { return }
 		self.updateLocation(coordinate: coordinate)
+	}
+}
+
+extension MainViewController: UICollectionViewDataSource {
+	func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: UICollectionViewCell.self), for: indexPath)
+		cell.backgroundColor = .white
+		cell.layer.cornerRadius = 10
+		return cell
+	}
+
+	func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+		return restaurants.count
+	}
+}
+
+extension MainViewController: UICollectionViewDelegate {
+	func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+		if let currentCenteredPage = centeredCollectionViewFlowLayout.currentCenteredPage,
+			currentCenteredPage != indexPath.row {
+			centeredCollectionViewFlowLayout.scrollToPage(index: indexPath.row, animated: true)
+		}
 	}
 }

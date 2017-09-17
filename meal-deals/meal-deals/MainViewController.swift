@@ -109,7 +109,7 @@ class MainViewController: UIViewController {
 		button.setImage(#imageLiteral(resourceName: "ChevronUp"), for: .normal)
 		button.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
 		button.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-		button.layer.cornerRadius = 44/2
+		button.layer.cornerRadius = 10
 		button.isHidden = false
 
 

@@ -111,7 +111,7 @@ class MainViewController: UIViewController {
 			collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
 			collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
 			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			collectionView.topAnchor.constraint(equalTo: view.bottomAnchor, constant: -160)
+			collectionView.topAnchor.constraint(equalTo: view.bottomAnchor, constant: -310)
 			])
 
 		// setup CenteredCollectionView
@@ -120,9 +120,9 @@ class MainViewController: UIViewController {
 		collectionView.dataSource = self
 		collectionView.backgroundColor = .clear
 		// register collection cells
-		collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: String(describing: UICollectionViewCell.self))
+		collectionView.register(CollectionViewCell.self, forCellWithReuseIdentifier: String(describing: CollectionViewCell.self))
 		// configure CenteredCollectionViewFlowLayout properties
-		centeredCollectionViewFlowLayout.itemSize = CGSize(width: view.bounds.width * 0.7, height: 150)
+		centeredCollectionViewFlowLayout.itemSize = CGSize(width: view.bounds.width * 0.7, height: 300)
 		centeredCollectionViewFlowLayout.minimumLineSpacing = 20
 		// get rid of scrolling indicators
 		collectionView.showsVerticalScrollIndicator = false
@@ -205,9 +205,9 @@ extension MainViewController: CLLocationManagerDelegate {
 
 extension MainViewController: UICollectionViewDataSource {
 	func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: UICollectionViewCell.self), for: indexPath)
-		cell.backgroundColor = .white
-		cell.layer.cornerRadius = 10
+		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: CollectionViewCell.self), for: indexPath) as! CollectionViewCell
+		cell.restaurant = restaurants[indexPath.row]
+		cell.render()
 		return cell
 	}
 

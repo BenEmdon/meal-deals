@@ -34,8 +34,9 @@ class MainViewController: UIViewController {
 	fileprivate let centeredCollectionViewFlowLayout = CenteredCollectionViewFlowLayout()
 
 	// shared mutable state ¯\_(ツ)_/¯
-	fileprivate var followUser = true
+	fileprivate var followUser = false
 	var restaurants: [Restaurant] = []
+	private var geocoderCounter = 1
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
@@ -76,6 +77,8 @@ class MainViewController: UIViewController {
 				)
 
 				strongSelf.restaurants.append(restaurant)
+			}
+			for restaurant in strongSelf.restaurants {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
 			}
 			strongSelf.collectionView.reloadData()
@@ -145,20 +148,27 @@ class MainViewController: UIViewController {
 	}
 	
 	func addAnnotationFor(restaurant: Restaurant) {
-		geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
-			guard let strongSelf = self else { return }
-			if let error = error {
-				print(error)
-			}
-			
-			if let coordinate = placemarks?.first?.location?.coordinate {
-				let annotation = MKPointAnnotation()
-				annotation.coordinate = coordinate
-				annotation.title = restaurant.dealTitle
-				strongSelf.mapView.addAnnotation(annotation)
-			}
-		})
+		DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(500 * geocoderCounter)) { [weak self] in
+			self?.geocoder.geocodeAddressString(restaurant.address, completionHandler: { [weak self] (placemarks, error) in
+				guard let strongSelf = self else { return }
+				if let error = error {
+					print(error)
+				}
+
+				if let coordinate = placemarks?.first?.location?.coordinate {
+					let annotation = MKPointAnnotation()
+					annotation.coordinate = coordinate
+					annotation.title = restaurant.dealTitle
+					strongSelf.mapView.addAnnotation(annotation)
+				} else {
+					print("Didn't find anything")
+				}
+				strongSelf.geocoderCounter -= 1
+			})
+		}
+		geocoderCounter += 1
 	}
+
 
 	func getQuery() -> DatabaseQuery {
 		return reference.child("restaurants").queryLimited(toFirst: 10)
@@ -167,14 +177,17 @@ class MainViewController: UIViewController {
 
 extension MainViewController: MKMapViewDelegate {
 	func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-		var annotationView: MKAnnotationView
-		if let view = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: MKAnnotationView.self)) {
-			annotationView = view
+		if annotation.isMember(of: MKUserLocation.self) { return nil }
+		let annotationView: DealAnnotationView
+		if let dequeue = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: DealAnnotationView.self)) as? DealAnnotationView {
+			annotationView = dequeue
 		} else {
-			annotationView = MKAnnotationView(annotation: annotation, reuseIdentifier: String(describing: MKAnnotationView.self))
+			annotationView = DealAnnotationView(annotation: annotation, reuseIdentifier: String(describing: DealAnnotationView.self))
 		}
 		
-		annotationView.canShowCallout = true
+		annotationView.dealTitle = annotation.title!
+		annotationView.render()
+		annotationView.centerOffset = CGPoint(x: -annotationView.label.bounds.width/2, y: -annotationView.label.bounds.height)
 		
 		return annotationView
 	}

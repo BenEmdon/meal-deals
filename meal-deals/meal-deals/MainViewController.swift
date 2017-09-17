@@ -62,7 +62,7 @@ class MainViewController: UIViewController {
 
 		// Firebase
 
-		let onDataBaseAdd: (DataSnapshot) -> () = { [weak self] dataSnapshot in
+		let onDataBaseAdd: (DataSnapshot, DataEventType) -> () = { [weak self] (dataSnapshot, event) in
 			guard let strongSelf = self else { return }
 
 			var newRestaurants: [Restaurant] = []
@@ -92,6 +92,9 @@ class MainViewController: UIViewController {
 			strongSelf.restaurants.append(contentsOf: newRestaurants)
 			for restaurant in newRestaurants {
 				strongSelf.addAnnotationFor(restaurant: restaurant)
+				if event == .childAdded {
+					strongSelf.notifyFor(restaurant: restaurant)
+				}
 			}
 			strongSelf.collectionView.reloadData()
 			if !strongSelf.restaurants.isEmpty {
@@ -101,9 +104,13 @@ class MainViewController: UIViewController {
 			}
 		}
 
-		getQuery().observeSingleEvent(of: .value, with: onDataBaseAdd)
+		getQuery().observeSingleEvent(of: .value) { dataSnapshot in
+			onDataBaseAdd(dataSnapshot, .value)
+		}
 
-		getQuery().observe(.childAdded, with: onDataBaseAdd)
+		getQuery().observe(.childAdded) { dataSnapshot in
+			onDataBaseAdd(dataSnapshot, .childAdded)
+		}
 
 		getQuery().observe(.childRemoved) { [weak self] (dataSnapshot, string) in
 			guard let strongSelf = self else { return }

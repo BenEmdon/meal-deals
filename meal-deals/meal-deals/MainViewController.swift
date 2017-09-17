@@ -34,7 +34,7 @@ class MainViewController: UIViewController {
 	fileprivate let centeredCollectionViewFlowLayout = CenteredCollectionViewFlowLayout()
 
 	// shared mutable state ¯\_(ツ)_/¯
-	fileprivate var followUser = true
+	fileprivate var followUser = false
 	var restaurants: [Restaurant] = []
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
@@ -167,6 +167,7 @@ class MainViewController: UIViewController {
 
 extension MainViewController: MKMapViewDelegate {
 	func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+		if annotation.isMember(of: MKUserLocation.self) { return nil }
 		var annotationView: MKPinAnnotationView
 		if let dequeue = mapView.dequeueReusableAnnotationView(withIdentifier: String(describing: MKPinAnnotationView.self)) as? MKPinAnnotationView {
 			annotationView = dequeue

@@ -37,6 +37,11 @@ class MainViewController: UIViewController {
 	fileprivate var followUser = false
 	var restaurants: [Restaurant] = []
 	private var geocoderCounter = 1
+	private var isExpanded = false
+	private var collectionViewBottomConstraint: NSLayoutConstraint!
+
+	// button yo
+	let button = UIButton()
 
 	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		collectionView = UICollectionView(centeredCollectionViewFlowLayout: centeredCollectionViewFlowLayout)
@@ -96,11 +101,20 @@ class MainViewController: UIViewController {
 		mapView.delegate = self
 		mapView.showsUserLocation = true
 
+		button.setImage(#imageLiteral(resourceName: "ChevronUp"), for: .normal)
+		button.addTarget(self, action: #selector(buttonPressed), for: .touchUpInside)
+		button.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+		button.layer.cornerRadius = 44/2
+
+
 		// view
 		view.addSubview(mapView)
 		mapView.translatesAutoresizingMaskIntoConstraints = false
 		view.addSubview(collectionView)
 		collectionView.translatesAutoresizingMaskIntoConstraints = false
+		view.addSubview(button)
+		button.translatesAutoresizingMaskIntoConstraints = false
+		collectionViewBottomConstraint = collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 280)
 
 		NSLayoutConstraint.activate([
 			mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -109,9 +123,14 @@ class MainViewController: UIViewController {
 			mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
 			collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-			collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
+			collectionViewBottomConstraint,
 			collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-			collectionView.topAnchor.constraint(equalTo: view.bottomAnchor, constant: -310)
+			collectionView.heightAnchor.constraint(equalToConstant: 310),
+
+			button.heightAnchor.constraint(equalToConstant: 44),
+			button.widthAnchor.constraint(equalTo: button.heightAnchor),
+			button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+			button.bottomAnchor.constraint(equalTo: collectionView.topAnchor, constant: -5)
 			])
 
 		// setup CenteredCollectionView
@@ -123,10 +142,38 @@ class MainViewController: UIViewController {
 		collectionView.register(CollectionViewCell.self, forCellWithReuseIdentifier: String(describing: CollectionViewCell.self))
 		// configure CenteredCollectionViewFlowLayout properties
 		centeredCollectionViewFlowLayout.itemSize = CGSize(width: view.bounds.width * 0.7, height: 300)
-		centeredCollectionViewFlowLayout.minimumLineSpacing = 20
+		centeredCollectionViewFlowLayout.minimumLineSpacing = 15
 		// get rid of scrolling indicators
 		collectionView.showsVerticalScrollIndicator = false
 		collectionView.showsHorizontalScrollIndicator = false
+	}
+
+	func buttonPressed() {
+		button.isEnabled = false
+		let animations: () -> ()
+		if isExpanded {
+			animations = { [weak self] in
+				self?.button.transform = CGAffineTransform(rotationAngle: 0)
+				self?.collectionViewBottomConstraint.constant = 280
+				self?.view.layoutIfNeeded()
+			}
+			isExpanded = false
+		} else {
+			animations = { [weak self] in
+				self?.button.transform = CGAffineTransform(rotationAngle: (CGFloat(Double.pi)))
+				self?.collectionViewBottomConstraint.constant = -10
+				self?.view.layoutIfNeeded()
+			}
+			isExpanded = true
+		}
+
+		UIView.animate(
+			withDuration: 0.5,
+			animations: animations,
+			completion: { [weak self] _ in
+				self?.button.isEnabled = true
+			}
+		)
 	}
 	
 	func updateLocation(coordinate: CLLocationCoordinate2D) {

@@ -16,7 +16,6 @@ class DealAnnotationView: MKAnnotationView {
 	override init(annotation: MKAnnotation?, reuseIdentifier: String?) {
 		super.init(annotation: annotation, reuseIdentifier: reuseIdentifier)
 		label.textColor = UIColor.black
-//		label.backgroundColor = .white
 		label.textAlignment = .center
 		label.numberOfLines = 0
 		

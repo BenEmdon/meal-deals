@@ -18,7 +18,8 @@ class CollectionViewCell: UICollectionViewCell {
 
 	override init(frame: CGRect) {
 		super.init(frame: frame)
-		backgroundColor = UIColor.white.withAlphaComponent(0.8)
+		backgroundColor = UIColor.white.withAlphaComponent(0.9)
+		layer.cornerRadius = 10
 		
 		let mainView = UIView()
 		let stackView = UIStackView()

@@ -1,3 +1,6 @@
+# Meal Deals
+Concept iOS app
+
 ![gif](https://raw.githubusercontent.com/BenEmdon/meal-deals/master/overall-low.gif)
 
 ## Inspiration
